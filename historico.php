@@ -1,15 +1,15 @@
 <?php
 if (!defined('ESTOQUE_APP')) { http_response_code(403); exit; }
-function registrarHistorico($db,$tabela,$id,$acao,$antes,$depois) {
-    $db->prepare('INSERT INTO historico(tabela,registro_id,operacao,antes,depois) VALUES(?,?,?,?,?)')->execute([
-        $tabela,$id,$acao,
+function registrarHistorico(PDO $db,int $uid,$tabela,$id,$acao,$antes,$depois) {
+    $db->prepare('INSERT INTO historico(usuario_id,tabela,registro_id,operacao,antes,depois) VALUES(?,?,?,?,?,?)')->execute([
+        $uid,$tabela,$id,$acao,
         $antes===null?null:json_encode($antes,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),
         $depois===null?null:json_encode($depois,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)
     ]);
 }
-function exibirHistorico($db,$tables) {
+function exibirHistorico(PDO $db,array $tables,int $uid) {
 
-$where=[];$args=[];foreach(['tabela','operacao'] as $f)if(is_string($_GET[$f]??null)&&$_GET[$f]!==''){$where[]="$f=?";$args[]=$_GET[$f];}
+$where=['usuario_id=?'];$args=[$uid];foreach(['tabela','operacao'] as $f)if(is_string($_GET[$f]??null)&&$_GET[$f]!==''){$where[]="$f=?";$args[]=$_GET[$f];}
 if(is_string($_GET['busca']??null)&&$_GET['busca']!==''){$where[]='(antes LIKE ? OR depois LIKE ? OR CAST(registro_id AS CHAR)=?)';$q=$_GET['busca'];array_push($args,"%$q%","%$q%",$q);}
 $hist=rows($db,'SELECT * FROM historico'.($where?' WHERE '.implode(' AND ',$where):'').' ORDER BY id DESC LIMIT 200',$args);
 ?>
