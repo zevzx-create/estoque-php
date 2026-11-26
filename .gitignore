@@ -1,1 +1,4 @@
 config.php
+.vscode/
+.login-attempts.php
+.config-*.php
